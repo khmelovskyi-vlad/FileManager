@@ -28,7 +28,7 @@ namespace FileManager
             SelectDisk();
             while (true)
             {
-                Console.WriteLine("If you want to select a different folder, click Enter");
+                Console.WriteLine("If you want to select a different folder or file, click Enter");
                 var key = Console.ReadKey(true);
                 if(key.Key == ConsoleKey.Enter)
                 {
@@ -48,7 +48,7 @@ namespace FileManager
         {
             try
             {
-                adressName = Path.GetDirectoryName(adressName);
+                adressName = $"{Path.GetDirectoryName(adressName)}\\";
                 OutPutFoldersAndFiles();
             }
             catch (ArgumentNullException)
@@ -144,15 +144,11 @@ namespace FileManager
             var undestand = UnderstandingQuestions();
             if (undestand.Key == ConsoleKey.Enter)
             {
-            Console.Clear();
-            fileLines = File.ReadAllLines(adressName);
-            WriteLines(fileLines);
-            topPosition = fileLines.Length - 1;
-            textBuilderFirst = new StringBuilder(fileLines[topPosition]);
-            textBuilderEnd = new StringBuilder();
-            allTextBuilder = new StringBuilder();
-            leftPosition = textBuilderFirst.Length;
-                Console.SetCursorPosition(leftPosition, topPosition);
+                InitializationOfVariables();
+                if (LeftOrTopPositionIsOrNotTooBig())
+                {
+                    return;
+                }
                 while (true)
                 {
                     var key = Console.ReadKey(true);
@@ -196,11 +192,58 @@ namespace FileManager
                     {
                         UpOrDownArrow();
                     }
-                    Console.SetCursorPosition(leftPosition, topPosition);
+                    Cursor();
                 }
             SavingFile(fileLines);
             }
             BackFolder();
+        }
+        private bool LeftOrTopPositionIsOrNotTooBig()
+        {
+            try
+            {
+                Console.SetCursorPosition(leftPosition, topPosition);
+                return false;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Console.WriteLine("This text is too big, can`t redact it");
+                BackFolder();
+                return true;
+            }
+        }
+        private void Cursor()
+        {
+            try
+            {
+                Console.SetCursorPosition(leftPosition, topPosition);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Console.Clear();
+                Console.WriteLine("Console window is too small, expand it and any key except Escape, or if you want exit the program click Escape");
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    throw new OperationCanceledException();
+                }
+                else
+                {
+                    InitializationOfVariables();
+                    Cursor();
+                }
+            }
+        }
+        private void InitializationOfVariables()
+        {
+            Console.Clear();
+            fileLines = File.ReadAllLines(adressName);
+            WriteLines(fileLines);
+            topPosition = fileLines.Length - 1;
+            textBuilderFirst = new StringBuilder(fileLines[topPosition]);
+            textBuilderEnd = new StringBuilder();
+            allTextBuilder = new StringBuilder();
+            leftPosition = textBuilderFirst.Length;
         }
         private ConsoleKeyInfo UnderstandingQuestions()
         {
@@ -211,7 +254,7 @@ namespace FileManager
         }
         private void SavingFile (string[] fileLine)
         {
-            Console.WriteLine();
+            Console.Clear();
             Console.WriteLine("If you want to save this file, click Enter, else, enouther click");
             var key = Console.ReadKey(true);
             Console.Clear();
