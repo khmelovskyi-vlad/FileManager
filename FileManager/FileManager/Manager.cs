@@ -48,7 +48,8 @@ namespace FileManager
         {
             try
             {
-                adressName = $"{Path.GetDirectoryName(adressName)}\\";
+                adressName = adressName.Remove(adressName.Length - 1);
+                adressName = Path.GetDirectoryName(adressName);
                 OutPutFoldersAndFiles();
             }
             catch (ArgumentNullException)
