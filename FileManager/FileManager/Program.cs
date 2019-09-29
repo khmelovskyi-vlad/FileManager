@@ -36,7 +36,7 @@ namespace FileManager
             //application = new Word.Application();
             //document = application.Documents.Add(ref q, ref missingObj, ref missingObj, ref missingObj);
             //Console.WriteLine(document);
-            Manager manager = new Manager();
+            Manager manager = new Manager(new ConsoleUserInteractor());
             manager.FileManager();
             Console.ReadKey();
         }

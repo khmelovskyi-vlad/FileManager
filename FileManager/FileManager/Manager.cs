@@ -9,9 +9,13 @@ namespace FileManager
 {
     class Manager
     {
-        public Manager()
+        private IUserInteractor userInteractor;
+
+        public Manager(IUserInteractor userInteractor)
         {
+            this.userInteractor = userInteractor;
         }
+
         private string adressName { get; set; }
         StringBuilder textBuilderEnd;
         StringBuilder allTextBuilder;
@@ -28,19 +32,17 @@ namespace FileManager
             SelectDisk();
             while (true)
             {
-                Console.WriteLine("If you want to select a different folder or file, click Enter");
-                var key = Console.ReadKey(true);
-                if(key.Key == ConsoleKey.Enter)
+                var mode = userInteractor.AskAction();
+                switch (mode)
                 {
-                    InFolderOrFile();
-                }
-                else if(key.Key == ConsoleKey.Backspace)
-                {
-                    BackFolder();
-                }
-                else if(key.Key == ConsoleKey.Escape)
-                {
-                    throw new OperationCanceledException();
+                    case UserAction.SelectFolder:
+                        SelectFolder();
+                        break;
+                    case UserAction.BackFolder:
+                        BackFolder();
+                        break;
+                    case UserAction.Close:
+                        return;
                 }
             }
         }
@@ -50,14 +52,14 @@ namespace FileManager
             {
                 adressName = adressName.Remove(adressName.Length - 1);
                 adressName = Path.GetDirectoryName(adressName);
-                OutPutFoldersAndFiles();
+                ReadFolder();
             }
             catch (ArgumentNullException)
             {
                 SelectDisk();
             }
         }
-        private void InFolderOrFile()
+        private void SelectFolder()
         {
             Console.WriteLine("Select a folder");
             while (true)
@@ -66,9 +68,9 @@ namespace FileManager
                 try
                 {
                     var fileName = Console.ReadLine();
-                        var adress = $"{fileName}\\";
-                        adressName = $"{adressName}{adress}";
-                        OutPutFoldersAndFiles();
+                    var adress = $"{fileName}\\";
+                    adressName = $"{adressName}{adress}";
+                    ReadFolder();
                     break;
                 }
                 catch (DirectoryNotFoundException ex)
@@ -110,35 +112,18 @@ namespace FileManager
                 }
                 if (flag)
                 {
-                    OutPutFoldersAndFiles();
+                    ReadFolder();
                     break;
                 }
             }
         }
-        private void OutPutFoldersAndFiles()
+        private void ReadFolder()
         {
             var allDirectories = Directory.GetDirectories(adressName);
             var allFiles = Directory.GetFiles(adressName);
             //var allFiles = allDirectories.Concat(allDocument);
-            if (allDirectories.Length != 0)
-            {
-                Console.WriteLine();
-                Console.WriteLine("This directory has following directories: ");
-                foreach (var directory in allDirectories)
-                {
-                    Console.WriteLine($"{Path.GetFileName(directory)}, ");
-                }
-            }
-            if (allFiles.Length != 0)
-            {
-                Console.WriteLine();
-                Console.WriteLine("This directory has following files: ");
-                foreach (var file in allFiles)
-                {
-                    Console.WriteLine($"{Path.GetFileName(file)}, ");
-                }
-            }
-            Console.WriteLine();
+            userInteractor.ShowFolderForlders(allDirectories);
+            userInteractor.ShowFolderFiles(allFiles);
         }
         private void EditingFile()
         {
